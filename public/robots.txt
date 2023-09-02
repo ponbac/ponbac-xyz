@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ponbac.xyz/sitemap-index.xml
