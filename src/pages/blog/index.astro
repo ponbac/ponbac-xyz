@@ -6,7 +6,7 @@ import Layout from "@/layouts/Layout.astro";
 import { getCollection } from "astro:content";
 
 const posts = (await getCollection("blog")).sort(
-  (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 
@@ -28,9 +28,7 @@ const posts = (await getCollection("blog")).sort(
                   alt=""
                   transition:name={`${post.data.title}-heroImage`}
                 />
-                <h4
-                  class="text-secondary text-2xl leading-none group-hover:text-orange-500 transition-colors duration-200 ease-in"
-                >
+                <h4 class="text-secondary text-center text-2xl leading-none group-hover:text-orange-500 transition-colors duration-200 ease-in">
                   {post.data.title}
                 </h4>
                 <p class="text-gray-400 group-hover:text-gray-600 transition-colors duration-200 ease-in">

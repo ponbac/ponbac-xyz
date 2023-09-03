@@ -18,7 +18,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         {
           heroImage && (
             <img
-              class="px-4 block mx-auto rounded-[2.5rem] drop-shadow-xl"
+              class="px-4 block mx-auto rounded-[2.5rem] drop-shadow-xl lg:max-w-5xl"
               src={heroImage}
               alt=""
               transition:name={`${title}-heroImage`}
@@ -38,10 +38,28 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
               )
             }
           </div>
-          <h1 class="text-4xl mb-8">{title}</h1>
-          <hr class="border-gray-600" />
+          <h1 class="text-4xl text-secondary mb-4">{title}</h1>
+          <hr class="border-gray-600 my-8" />
         </div>
-        <slot />
+        <div
+          class:list={[
+            "prose prose-slate text-secondary max-w-full",
+            // Headings
+            "prose-headings:text-secondary",
+            // Code
+            "prose-code:text-orange-400",
+            // Image
+            "prose-img:rounded-lg prose-img:shadow-md prose-img:shadow-orange-500",
+            // Blockquote
+            "prose-blockquote:text-orange-200",
+            // Strong
+            "prose-strong:text-secondary",
+            // Link (a)
+            "prose-a:text-orange-400 hover:prose-a:text-orange-600 prose-a:transition-colors",
+          ]}
+        >
+          <slot />
+        </div>
       </div>
     </article>
   </main>
