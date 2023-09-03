@@ -13,8 +13,8 @@ const isActive = href === pathname || href === pathname.replace(/\/$/, "");
   href={href}
   class:list={[
     className,
-    "inline-block",
-    { "underline font-semibold": isActive },
+    "inline-block text-lg hover:text-orange-500 transition-colors",
+    { "border-b-2 border-orange-200 font-semibold": isActive },
     { "no-underline": !isActive },
   ]}
   {...props}

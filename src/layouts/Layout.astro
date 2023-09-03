@@ -1,6 +1,8 @@
 ---
 import "@/styles/globals.css";
+import { ViewTransitions } from "astro:transitions";
 import { SITE_DESCRIPTION } from "../consts";
+import { TailwindIndicator } from "@/components/TailwindIndicator";
 
 interface Props {
   title: string;
@@ -19,8 +21,10 @@ const { title } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <title>{title}</title>
+    <ViewTransitions />
   </head>
-  <body class="bg-primary text-secondary min-h-screen font-sans">
+  <body class="bg-primary text-secondary min-h-screen font-sans scroll-smooth">
     <slot />
+    <TailwindIndicator />
   </body>
 </html>

@@ -1,0 +1,48 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Header from "../components/Header.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import Layout from "./Layout.astro";
+import { SITE_TITLE } from "@/consts";
+
+type Props = CollectionEntry<"blog">["data"];
+
+const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+---
+
+<Layout title={`${title} - ${SITE_TITLE}`}>
+  <Header />
+  <main class="py-8 w-full">
+    <article>
+      <div class="w-full rounded-full">
+        {
+          heroImage && (
+            <img
+              class="px-4 block mx-auto rounded-[2.5rem] drop-shadow-xl"
+              src={heroImage}
+              alt=""
+              transition:name={`${title}-heroImage`}
+            />
+          )
+        }
+      </div>
+      <div class="prose mx-auto p-4 text-secondary max-w-screen-md">
+        <div class="mb-4 mt-2 text-center leading-none">
+          <div class="text-gray-500 text-lg mb-2">
+            <FormattedDate date={pubDate} transition:name={`${title}-pubDate`} />
+            {
+              updatedDate && (
+                <div class="italic">
+                  Last updated on <FormattedDate date={updatedDate} />
+                </div>
+              )
+            }
+          </div>
+          <h1 class="text-4xl mb-8">{title}</h1>
+          <hr class="border-gray-600" />
+        </div>
+        <slot />
+      </div>
+    </article>
+  </main>
+</Layout>

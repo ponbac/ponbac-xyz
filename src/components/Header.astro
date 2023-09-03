@@ -3,20 +3,20 @@ import HeaderLink from "./HeaderLink.astro";
 import { SITE_TITLE } from "../consts";
 ---
 
-<header class="p-4 border-b-2 w-fit mx-auto">
-  <nav class="flex items-center justify-center gap-60">
-    <h2 class="text-base m-0">
-      <a href="/" class="no-underline font-semibold text-2xl">
+<header class="p-4 border-b-2 border-orange-500 w-fit mx-auto">
+  <nav class="flex items-center justify-center gap-10 md:gap-40 lg:gap-60">
+    <h2 class="m-0 font-mono text-2xl hover:text-orange-500 hover:-rotate-3 transition-all">
+      <a href="/" class="no-underline">
         {SITE_TITLE}
       </a>
     </h2>
-    <div class="flex space-x-4">
-      <HeaderLink href="/">Home</HeaderLink>
-      <HeaderLink href="/blog">Blog</HeaderLink>
-      <HeaderLink href="/about">About</HeaderLink>
+    <div class="flex gap-4 md:gap-6 lg:gap-8 font-mono">
+      <HeaderLink href="/">home</HeaderLink>
+      <HeaderLink href="/blog">blog</HeaderLink>
+      <HeaderLink href="/about">about</HeaderLink>
     </div>
-    <div class="space-x-4 hidden md:flex">
-      <a href="https://twitter.com/ponbac_" target="_blank" class="flex items-center">
+    <div class="space-x-4 flex">
+      <!-- <a href="https://twitter.com/ponbac_" target="_blank" class="flex items-center">
         <span class="sr-only">Follow ponbac on Twitter</span>
         <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32"
           ><path
@@ -24,8 +24,12 @@ import { SITE_TITLE } from "../consts";
             d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"
           ></path></svg
         >
-      </a>
-      <a href="https://github.com/ponbac" target="_blank" class="flex items-center">
+      </a> -->
+      <a
+        href="https://github.com/ponbac"
+        target="_blank"
+        class="flex items-center hover:text-orange-500 transition-colors"
+      >
         <span class="sr-only">Go to ponbac's GitHub profile</span>
         <svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32"
           ><path
@@ -36,46 +40,4 @@ import { SITE_TITLE } from "../consts";
       </a>
     </div>
   </nav>
-
-  <!-- <style>
-	header {
-		margin: 0;
-		padding: 0 1em;
-		background: white;
-		box-shadow: 0 2px 8px rgba(var(--black), 5%);
-	}
-	h2 {
-		margin: 0;
-		font-size: 1em;
-	}
-
-	h2 a,
-	h2 a.active {
-		text-decoration: none;
-	}
-	nav {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
-		text-decoration: none;
-	}
-	nav a.active {
-		text-decoration: none;
-		border-bottom-color: var(--accent);
-	}
-	.social-links,
-	.social-links a {
-		display: flex;
-	}
-	@media (max-width: 720px) {
-		.social-links {
-			display: none;
-		}
-	}
-</style> -->
 </header>
