@@ -1,0 +1,4 @@
+{
+  "tailwindCSS.classAttributes": ["class", "className", "ngClass", "class:list"],
+  "tailwindCSS.experimental.classRegex": [["[cC]lasses\\s*=\\s*{([^}]+)}", "\"([^\"]*)\""]]
+}
