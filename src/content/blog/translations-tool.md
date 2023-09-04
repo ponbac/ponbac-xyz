@@ -40,4 +40,53 @@ In order to solve these issues _(and build something interesting)_ I began build
 
 **Rust** is my language of choice for this project. Primarily because I enjoy working with Rust and have heard good things about the [clap](https://crates.io/crates/clap) crate for building command-line interfaces. But also due to the small binary size, great performance, and the fact that it's easy to compile to multiple platforms.
 
-## Parsing the 
+## Parsing arguments with clap
+
+After installing clap with `cargo add clap --features derive`, you simply define a struct with the arguments you want to parse, and then call the `parse()` method on it:
+
+```rust
+/// Handle those damn translations...
+#[derive(Parser)]
+#[command(version, about)]
+struct Args {
+    /// Root directory to search from
+    #[arg(short, long, default_value = ".")]
+    root_dir: PathBuf,
+    /// Path to English translation file
+    #[arg(short, long)]
+    en_file: PathBuf,
+    /// Path to Swedish translation file
+    #[arg(short, long)]
+    sv_file: PathBuf,
+}
+
+fn main() {
+    let args = Args::parse();
+
+    println!("root_dir: {:?}", args.root_dir);
+    println!("en_file: {:?}", args.en_file);
+    println!("sv_file: {:?}", args.sv_file);
+}
+```
+
+Here we are defining three arguments: `root_dir`, `en_file`, and `sv_file`. All three will be parsed as a `PathBuf`, which is a type provided by the standard library for working with file paths. The triple slash `///` comments is used to add documentation and help messages to the CLI.
+
+The `root_dir` argument is optional and has a default value of `.` _(the current directory)_. The `en_file` and `sv_file` arguments are required, and all three arguments can be specified with either a short flag _(e.g. `-r`)_ or a long flag _(e.g. `--root-dir`)_.
+
+This also gives us a nice help message when we run the program with the `--help` flag:
+
+```bash
+Handle those damn translations...
+
+Usage: ramilang.exe [OPTIONS] --en-file <EN_FILE> --sv-file <SV_FILE>
+
+Options:
+  -r, --root-dir <ROOT_DIR>  Root directory to search from [default: .]
+  -e, --en-file <EN_FILE>    Path to English translation file
+  -s, --sv-file <SV_FILE>    Path to Swedish translation file
+  -h, --help                 Print help
+  -V, --version              Print version
+```
+
+## Reading the translation files
+
