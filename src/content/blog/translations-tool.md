@@ -89,4 +89,3 @@ Options:
 ```
 
 ## Reading the translation files
-
