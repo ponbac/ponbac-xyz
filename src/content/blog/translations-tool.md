@@ -89,3 +89,13 @@ Options:
 ```
 
 ## Reading the translation files
+
+I created a `TranslationFile` struct to represent a translation file. It contains the path to the file, and a [BTreeMap](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html) of the translation keys and values:
+
+```rust
+pub struct TranslationFile {
+    pub path: PathBuf,
+    pub entries: BTreeMap<String, String>,
+}
+```
+
