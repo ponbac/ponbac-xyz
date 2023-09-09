@@ -99,3 +99,15 @@ pub struct TranslationFile {
 }
 ```
 
+The reason for using `BTreeMap`, a self-balancing tree data structure, is that it keeps the keys sorted without any additional work. Our translation files will now always be sorted alphabetically, making manual inspection easier.
+
+Writing any changes to the entries back to disk is as simple as serializing the entries to JSON and writing it to the file:
+
+```rust
+pub fn write(&self) -> Result<()> {
+    let serialized_entries = serde_json::to_string_pretty(&self.entries)?;
+
+    let mut file = File::create(&self.path)?;
+    Ok(file.write_all(serialized_entries.as_bytes())?)
+}
+```
