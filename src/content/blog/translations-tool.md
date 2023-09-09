@@ -99,9 +99,7 @@ pub struct TranslationFile {
 }
 ```
 
-The reason for using `BTreeMap`, a self-balancing tree data structure, is that it keeps the keys sorted without any additional work. Our translation files will now always be sorted alphabetically, making manual inspection easier.
-
-Writing any changes to the entries back to disk is as simple as serializing the entries to JSON and writing it to the file:
+The reason for using `BTreeMap`, a self-balancing tree data structure, is that it keeps the keys sorted without any additional work. Our translation files will now always be sorted alphabetically, making manual inspection easier. This means that writing the entries back to disk, sorted by keys, is as simple as this:
 
 ```rust
 pub fn write(&self) -> Result<()> {
@@ -110,4 +108,34 @@ pub fn write(&self) -> Result<()> {
     let mut file = File::create(&self.path)?;
     Ok(file.write_all(serialized_entries.as_bytes())?)
 }
+```
+
+Creating a `TranslationFile` is as simple as providing a path to the file (`let translation_file = TranslationFile::new(path);`). The implementation of `new()` is a bit more involved, as it needs to read the file, parse the JSON, and check for duplicate keys:
+
+```rust
+impl TranslationFile {
+    pub fn new(path: PathBuf) -> Result<Self, TranslationFileError> {
+        let duplicates = find_key_duplicates(&path);
+        if !duplicates.is_empty() {
+            return Err(TranslationFileError::DuplicateKeys(path, duplicates));
+        }
+
+        let file = std::fs::File::open(&path).expect("Unable to open file");
+        let entries = serde_json::from_reader(file).expect("Unable to parse json");
+
+        Ok(Self { path, entries })
+    }
+
+    ...
+}
+```
+
+I am not so happy with this implementation, as it reads the file twice. Once to check for duplicate keys inside `find_key_duplicates()`, and once inside `serde_json::from_reader()`. Looking for duplicates is validation logic that should probably not be part of the `new()` method.
+
+## Checking compatibility between files
+
+The `TranslationFile` struct also has a `check_compatibility()` method that checks if the keys in the file are compatible with another `TranslationFile`. This is used to check if the keys in the English and Swedish translation files are in sync:
+
+```rust
+
 ```
