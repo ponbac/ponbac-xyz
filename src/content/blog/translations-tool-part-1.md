@@ -337,6 +337,10 @@ fn find_usages(&mut self, opening_tag: &str, id_tag: &str) -> Vec<KeyUsage> {
 
 This method is used to find both `<FormattedMessage />` and `formatMessage()` usages. The `opening_tag` parameter is used to identify the start of the usage pattern, and the `id_tag` parameter is used to identify the start of the translation key.
 
+The method iterates over each line of the file, looking for the `opening_tag`. Once it finds it, it starts looking for the `id_tag`. If it finds it, it extracts the key and adds it to the results. If it doesn't find it, it looks for a ternary operator `?` _(which is often used to conditionally render a translation in our codebase)_ and then looks for the `id_tag` again. If it finds it, it extracts the key and adds it to the results.
+
+Keeping track of the state of the method is done with the `found_opening` and `found_ternary` variables. These variables are used to determine if the method is currently looking for an `id_tag` or if it's looking for the second part of a ternary operator. If the method finds a `/>` tag, it resets the state variables, as this means that we failed to find the `id_tag` and are now looking for a new `opening_tag`.
+
 ### Key Extraction Utilities
 
 To facilitate key extraction, we use a couple of utility functions: `extract_id()` and `extract_quoted_string()`. These functions utilize [nom](https://github.com/rust-bakery/nom) to navigate to the desired tags and extract the enclosed keys:
@@ -361,3 +365,9 @@ fn extract_quoted_string(input: &str) -> IResult<&str, String> {
 ```
 
 I wanted to try out `nom` for this project, as I've seen really cool examples of it being used to parse complex data structures. However, it might be overkill for this use case, and I'm not sure if it's worth the extra complexity. I also think that there might be some skill issues in play here, as `nom` is not the easiest library to work with and this is my first time using it.
+
+This could probably also have been done with something like [tree-sitter](https://tree-sitter.github.io/tree-sitter/). I've been wanting to try that out as well, but it feels like an even bigger overkill for this use case. If I would expand this project to include an LSP server for instant feedback in the editor, then I would consider using `tree-sitter`.
+
+## Putting it all together
+
+You can find the full source code for the CLI tool [here](https://github.com/ponbac/ramilang). It's still a work in progress, but it's already usable and has helped us find a lot of issues in our translations.
