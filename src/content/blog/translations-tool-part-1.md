@@ -347,8 +347,8 @@ To facilitate key extraction, we use a couple of utility functions: `extract_id(
 
 ```rust
 fn extract_id<'a>(input: &'a str, id_tag: &'a str) -> IResult<&'a str, String> {
-    let (input, *) = take_until(id_tag)(input)?;
-    let (input, *) = tag(id_tag)(input)?;
+    let (input, _) = take_until(id_tag)(input)?;
+    let (input, _) = tag(id_tag)(input)?;
 
     let (input, _) = take_until("\"")(input)?;
     let (input, id) = fenced("\"", "\"")(input)?;
@@ -357,7 +357,7 @@ fn extract_id<'a>(input: &'a str, id_tag: &'a str) -> IResult<&'a str, String> {
 }
 
 fn extract_quoted_string(input: &str) -> IResult<&str, String> {
-    let (input, *) = take_until("\"")(input)?;
+    let (input, _) = take_until("\"")(input)?;
     let (input, id) = fenced("\"", "\"")(input)?;
 
     Ok((input, id.to_string()))
