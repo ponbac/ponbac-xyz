@@ -329,10 +329,4 @@ fn extract_quoted_string(input: &str) -> IResult<&str, String> {
 }
 ```
 
-### Considerations for Future Improvements
-
-The current implementation effectively tracks the use of translation keys in various common patterns. However, considering the diverse ways in which keys might be utilized in a large codebase, it's recommended to expand the variety of patterns recognized by the tool. Additionally, incorporating a configuration file to specify custom patterns would enhance the tool's flexibility.
-
-Further, while the ternary operations are handled, it is noted that edge cases may exist which could potentially lead to incorrect results. A more robust mechanism to deal with such cases would be a beneficial enhancement.
-
-Lastly, after each operation, the file's read pointer is reset to the start, allowing for subsequent operations to read the file from the beginning. Ensuring optimal performance with larger files and avoiding unnecessary file operations could be a focal point for future optimizations.
+I wanted to try out `nom` for this project, as I've seen really cool examples of it being used to parse complex data structures. However, it might be overkill for this use case, and I'm not sure if it's worth the extra complexity. I also think that there might be some skill issues in play here, as `nom` is not the easiest library to work with and this is my first time using it.
