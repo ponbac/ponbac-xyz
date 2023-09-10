@@ -130,7 +130,9 @@ impl TranslationFile {
 }
 ```
 
-I am not satisfied with this implementation, as it reads the file twice. Once to check for duplicate keys inside `find_key_duplicates()`, and once inside `serde_json::from_reader()`. Looking for duplicates is validation logic that should probably not be part of the `new()` method.
+I am not satisfied with this implementation, as it reads the file twice. Once to check for duplicate keys inside `find_key_duplicates()`, and once inside `serde_json::from_reader()`.
+
+Another issue is that I am looking for duplicates here. This is validation logic that should probably not be part of the `new()` method.
 
 ## Checking compatibility between files
 
