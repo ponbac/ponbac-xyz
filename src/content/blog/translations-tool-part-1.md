@@ -308,39 +308,31 @@ fn find_usages_multiple_tags(&mut self, tags: [&str; 5]) -> Vec<KeyUsage> {
 
 ### Key Extraction Utilities
 
-To facilitate key extraction, we use a couple of utility functions: extract_id and extract_quoted_string. These functions utilize nom parsers to navigate to the desired tags and extract the enclosed keys:
+To facilitate key extraction, we use a couple of utility functions: `extract_id()` and `extract_quoted_string()`. These functions utilize [nom](https://github.com/rust-bakery/nom) to navigate to the desired tags and extract the enclosed keys:
 
-rust
-Copy code
-fn extract*id<'a>(input: &'a str, id_tag: &'a str) -> IResult<&'a str, String> {
-let (input, *) = take*until(id_tag)(input)?;
-let (input, *) = tag(id_tag)(input)?;
+```rust
+fn extract_id<'a>(input: &'a str, id_tag: &'a str) -> IResult<&'a str, String> {
+    let (input, *) = take_until(id_tag)(input)?;
+    let (input, *) = tag(id_tag)(input)?;
 
     let (input, _) = take_until("\"")(input)?;
     let (input, id) = fenced("\"", "\"")(input)?;
 
     Ok((input, id.to_string()))
-
 }
 
-fn extract*quoted_string(input: &str) -> IResult<&str, String> {
-let (input, *) = take_until("\"")(input)?;
-let (input, id) = fenced("\"", "\"")(input)?;
+fn extract_quoted_string(input: &str) -> IResult<&str, String> {
+    let (input, *) = take_until("\"")(input)?;
+    let (input, id) = fenced("\"", "\"")(input)?;
 
     Ok((input, id.to_string()))
-
 }
-Considerations for Future Improvements
+```
+
+### Considerations for Future Improvements
+
 The current implementation effectively tracks the use of translation keys in various common patterns. However, considering the diverse ways in which keys might be utilized in a large codebase, it's recommended to expand the variety of patterns recognized by the tool. Additionally, incorporating a configuration file to specify custom patterns would enhance the tool's flexibility.
 
 Further, while the ternary operations are handled, it is noted that edge cases may exist which could potentially lead to incorrect results. A more robust mechanism to deal with such cases would be a beneficial enhancement.
 
 Lastly, after each operation, the file's read pointer is reset to the start, allowing for subsequent operations to read the file from the beginning. Ensuring optimal performance with larger files and avoiding unnecessary file operations could be a focal point for future optimizations.
-
-```
-
-```
-
-```
-
-```
