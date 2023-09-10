@@ -134,8 +134,48 @@ I am not so happy with this implementation, as it reads the file twice. Once to 
 
 ## Checking compatibility between files
 
-The `TranslationFile` struct also has a `check_compatibility()` method that checks if the keys in the file are compatible with another `TranslationFile`. This is used to check if the keys in the English and Swedish translation files are in sync:
+The `TranslationFile` struct also has a `is_compatible_with()` function that checks if the keys in the file are compatible with another `TranslationFile`. This is used to check if the keys in the English and Swedish translation files are in sync and that no keys have empty values:
 
 ```rust
+/// Compare two translation files and return an error if they are not compatible.
+///
+/// Two translation files are compatible if:
+/// - They have the same keys
+/// - All keys have a non-empty value
+pub fn is_compatible_with(
+    &self,
+    other: &Self,
+) -> Result<(), (Vec<TranslationFileError>, Vec<TranslationFileError>)> {
+    let self_errors = self.check_rules(other);
+    let other_errors = other.check_rules(self);
 
+    if !self_errors.is_empty() || !other_errors.is_empty() {
+        return Err((self_errors, other_errors));
+    }
+
+    Ok(())
+}
+
+fn check_rules(&self, other: &Self) -> Vec<TranslationFileError> {
+    let mut errors = Vec::new();
+
+    for (key, value) in &self.entries {
+        // Check matching keys
+        if !other.entries.contains_key(key) {
+            errors.push(TranslationFileError::MissingKey {
+                key: key.clone(),
+                missing_in: other.path.clone(),
+            });
+        // Check non-empty values
+        } else if value.is_empty() {
+            errors.push(TranslationFileError::EmptyValue(key.to_string()));
+        }
+    }
+
+    errors
+}
 ```
+
+## Finding key usages in code
+
+The last piece of the puzzle is finding all the places where a translation key is used in the code. In order to do this, we need to find 
