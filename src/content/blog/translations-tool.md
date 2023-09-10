@@ -1,6 +1,6 @@
 ---
-title: "Validating translations in React with Rust - Part 1: CI validation"
-description: "Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro."
+title: "Validating translations in React with Rust - Part 1: CLI tool"
+description: "Solving the problem of missing and unused translations in React with a tool built in Rust."
 pubDate: "Sep 03 2023"
 heroImage: "/pnpm-translations.png"
 ---
@@ -110,7 +110,7 @@ pub fn write(&self) -> Result<()> {
 }
 ```
 
-Creating a `TranslationFile` is as simple as providing a path to the file (`let translation_file = TranslationFile::new(path);`). The implementation of `new()` is a bit more involved, as it needs to read the file, parse the JSON, and check for duplicate keys:
+Creating a `TranslationFile` is done by providing a path to the file (`let translation_file = TranslationFile::new(path);`). The implementation of `new()` is a bit more involved, as it needs to read the file, parse the JSON, and check for duplicate keys:
 
 ```rust
 impl TranslationFile {
@@ -130,7 +130,7 @@ impl TranslationFile {
 }
 ```
 
-I am not so happy with this implementation, as it reads the file twice. Once to check for duplicate keys inside `find_key_duplicates()`, and once inside `serde_json::from_reader()`. Looking for duplicates is validation logic that should probably not be part of the `new()` method.
+I am not satisfied with this implementation, as it reads the file twice. Once to check for duplicate keys inside `find_key_duplicates()`, and once inside `serde_json::from_reader()`. Looking for duplicates is validation logic that should probably not be part of the `new()` method.
 
 ## Checking compatibility between files
 
@@ -176,6 +176,39 @@ fn check_rules(&self, other: &Self) -> Vec<TranslationFileError> {
 }
 ```
 
-## Finding key usages in code
+## Walking the directory tree
 
-The last piece of the puzzle is finding all the places where a translation key is used in the code. In order to do this, we need to find 
+The last piece of the puzzle is finding all the places where a translation key is used in the code. In order to do this, we first need to identify all the files that could contain translations.
+
+This is done with the help of the [walkdir](https://crates.io/crates/walkdir) crate, which provides an iterator over all the files in a directory tree:
+
+```rust
+fn is_node_modules(entry: &DirEntry) -> bool {
+    entry.file_name() == "node_modules"
+}
+
+let walker = WalkDir::new(args.root_dir)
+    .into_iter()
+    // Exclude node_modules
+    .filter_entry(|e| !is_node_modules(e))
+    // Filter out any non-accessible files
+    .filter_map(|e| e.ok());
+```
+
+As can be seen above, we are filtering out the `node_modules` directory, as we don't want to check any files in there. We are also filtering out any files that we don't have access to _(e.g. due to permissions)_.
+
+Now that we have an iterator over all the files, we can narrow it down to only the files that we are interested in. In this case, we are only interested in files with the `.ts` or `.tsx` extension:
+
+```rust
+static EXTENSIONS_TO_SEARCH: [&str; 2] = ["ts", "tsx"];
+
+for file in walker.filter(|e| e.path().is_file()) {
+    if let Some(ext) = file.path().extension() {
+        if EXTENSIONS_TO_SEARCH.contains(&ext.to_str().unwrap()) {
+            println!("Found interesting file: {}", file.path().to_str().unwrap());
+        }
+    }
+}
+```
+
+## Finding translation keys in code
