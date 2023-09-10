@@ -21,6 +21,8 @@ const MyComponent = () => (
 );
 ```
 
+## Table of contents
+
 # The problem
 
 Unfortunately, it's easy to make mistakes when working like this. For example, you might forget to add a translation for a new string, or you might accidentally use a key that doesn't exist. These mistakes can be hard to catch, especially if you're working on a large project with many translations.
