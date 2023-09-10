@@ -197,7 +197,9 @@ let walker = WalkDir::new(args.root_dir)
     .filter_map(|e| e.ok());
 ```
 
-As can be seen above, we are filtering out the `node_modules` directory, as we don't want to check any files in there. We are also filtering out any files that we don't have access to _(e.g. due to permissions)_.
+As can be seen above, we are filtering out the `node_modules` directory, as we don't want to check any files in there. The `filter_entry()` function makes the walker not descend into the filtered directories, thereby potentially saving us quite a bit of time _(`node_modules` often contains a ridiculous amount of files and directories)_.
+
+We are also filtering out any files that we don't have access to _(e.g. due to permissions)_. This is done with the `filter_map()` function, which allows us to filter and map at the same time. The `ok()` function converts a `Result` into an `Option`, discarding any errors. Thanks to this, we won't have to deal with any error handling due to inaccessible files inside the loop processing the files.
 
 Now that we have an iterator over all the files, we can narrow it down to only the files that we are interested in. In this case, we are only interested in files with the `.ts` or `.tsx` extension:
 
@@ -207,7 +209,7 @@ static EXTENSIONS_TO_SEARCH: [&str; 2] = ["ts", "tsx"];
 for file in walker.filter(|e| e.path().is_file()) {
     if let Some(ext) = file.path().extension() {
         if EXTENSIONS_TO_SEARCH.contains(&ext.to_str().unwrap()) {
-            println!("Found interesting file: {}", file.path().to_str().unwrap());
+            println!("Doing things with {}", file.path().to_str().unwrap());
         }
     }
 }
