@@ -280,31 +280,62 @@ pub fn find_misc_usages(&mut self) -> Vec<KeyUsage> {
 
 The `find_usages()` and `find_usages_multiple_tags()` methods are the core of the key extraction process. They iterate over each line of a file, identifying patterns that signify the use of a translation key and then extracts the key and its usage details (such as the line number and file path).
 
+I apologize in advance for the following method, as it is quite messy and hard to follow. I am not very happy with it, but I haven't been able to come up with a prettier solution yet:
+
 ```rust
 fn find_usages(&mut self, opening_tag: &str, id_tag: &str) -> Vec<KeyUsage> {
-    ...
-    if let Ok((_, key)) = extract_id(&line, id_tag) {
-        results.push(KeyUsage {
-            key,
-            line: line_number + 1,
-            file_path: self.path.to_path_buf(),
-        });
-    }
-    ...
-}
+    let mut results = Vec::new();
+    let mut found_opening = false;
+    let mut found_ternary = false;
+    for (line_number, line_result) in BufReader::new(&self.file).lines().enumerate() {
+        if let Ok(line) = line_result {
+            if line.contains(opening_tag) {
+                found_opening = true;
+            }
 
-fn find_usages_multiple_tags(&mut self, tags: [&str; 5]) -> Vec<KeyUsage> {
-    ...
-    if let Ok((_, key)) = extract_id(&line, tag_str) {
-        results.push(KeyUsage {
-            key,
-            line: line_number + 1,
-            file_path: self.path.to_path_buf(),
-        });
+            if found_opening {
+                if let Ok((_, key)) = extract_id(&line, id_tag) {
+                    results.push(KeyUsage {
+                        key,
+                        line: line_number + 1,
+                        file_path: self.path.to_path_buf(),
+                    });
+                    found_ternary = false;
+                    found_opening = false;
+                } else if line.contains('?') {
+                    if let Ok((_, key)) = extract_quoted_string(&line) {
+                        results.push(KeyUsage {
+                            key,
+                            line: line_number + 1,
+                            file_path: self.path.to_path_buf(),
+                        });
+                    }
+                    found_ternary = true;
+                } else if found_ternary && line.contains(':') {
+                    if let Ok((_, key)) = extract_quoted_string(&line) {
+                        results.push(KeyUsage {
+                            key,
+                            line: line_number + 1,
+                            file_path: self.path.to_path_buf(),
+                        });
+                    }
+                    found_ternary = false;
+                    found_opening = false;
+                } else if line.contains("/>") {
+                    // TODO: think about edge cases where this might not be true!
+                    found_ternary = false;
+                    found_opening = false;
+                }
+            }
+        }
     }
-    ...
+
+    self.file.seek(std::io::SeekFrom::Start(0)).unwrap();
+    results
 }
 ```
+
+This method is used to find both `<FormattedMessage />` and `formatMessage()` usages. The `opening_tag` parameter is used to identify the start of the usage pattern, and the `id_tag` parameter is used to identify the start of the translation key.
 
 ### Key Extraction Utilities
 
