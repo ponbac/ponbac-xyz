@@ -2,12 +2,12 @@
 title: "Validating translations in React with Rust - Part 1: CLI tool"
 description: "Solving the problem of missing and unused translations in React with a tool built in Rust."
 pubDate: "Sep 03 2023"
-heroImage: "/pnpm-translations.png"
+heroImage: "/images/translations-1-hero.png"
 ---
 
 I'm currently working on a React project that uses [react-intl](https://www.npmjs.com/package/react-intl) for translations. We have a lot of translations, and we're adding more every day. Our translation keys and values are manually entered into two JSON files: `en.json` and `sv.json` _(for English and Swedish, respectively)_.
 
-![Translations in JSON files](/images/translations-example.png)
+![Translations in JSON files](../../assets/images/translation-tool/translations-example.png)
 
 These translations are then used in our React components. Most of the time, we use the `<FormattedMessage />` component from `react-intl` to render the translations:
 
@@ -136,7 +136,7 @@ Another issue is that I am looking for duplicates here. This is validation logic
 
 ## Checking compatibility between files
 
-The `TranslationFile` struct also has a `is_compatible_with()` function that checks if the keys in the file are compatible with another `TranslationFile`. This is used to check if the keys in the English and Swedish translation files are in sync and that no keys have empty values:
+The `TranslationFile` struct also has a `is_compatible_with()` method that checks if the keys in the file are compatible with another `TranslationFile`. This is used to check if the keys in the English and Swedish translation files are in sync and that no keys have empty values:
 
 ```rust
 /// Compare two translation files and return an error if they are not compatible.
@@ -178,6 +178,8 @@ fn check_rules(&self, other: &Self) -> Vec<TranslationFileError> {
 }
 ```
 
+I would like to improve the rules checking here, as it's not very flexible. For example, it would be nice to be able to specify a list of rules to check _(probably in the form of functions that return a `TranslationFileError`)_, and then have the `check_rules()` method iterate over that list and check each rule.
+
 ## Walking the directory tree
 
 The last piece of the puzzle is finding all the places where a translation key is used in the code. In order to do this, we first need to identify all the files that could contain translations.
@@ -216,3 +218,129 @@ for file in walker.filter(|e| e.path().is_file()) {
 ```
 
 ## Finding translation keys in code
+
+To identify the occurrences of each translation key within our TypeScript files, we are leveraging the nom parsing library to navigate through the structure of our code and pinpoint the exact locations where a translation key is used. This operation is essential in ensuring that all keys are correctly implemented and facilitates the detection of any unused keys.
+
+Let's delve into how the Rust code integrates with your TypeScript files to streamline the translation validation process.
+
+### Establishing TypeScript File Structure
+
+We initiate by defining the TSFile struct to represent a TypeScript file. This struct holds both the file itself and its respective path:
+
+```rust
+pub struct TSFile {
+    pub file: File,
+    pub path: PathBuf,
+}
+
+pub struct KeyUsage {
+    pub key: String,
+    pub line: usize,
+    pub file_path: PathBuf,
+}
+```
+
+Within TSFile, we have methods to locate various usage patterns of translation keys in your TypeScript code. Let’s examine each method in detail.
+
+### Finding Specific Usage Patterns
+
+The `find_formatted_message_usages()` method searches for translation keys used in the `<FormattedMessage />` component. It looks for patterns beginning with `<FormattedMessage` followed by `id=` to find the keys:
+
+```rust
+pub fn find_formatted_message_usages(&mut self) -> Vec<KeyUsage> {
+    self.find_usages("<FormattedMessage", "id=")
+}
+```
+
+Similarly, the `find_format_message_usages()` method is tuned to find keys used with the `formatMessage()` function. It looks for patterns starting with `formatMessage(` followed by `id:`:
+
+```rust
+pub fn find_format_message_usages(&mut self) -> Vec<KeyUsage> {
+    self.find_usages("formatMessage(", "id:")
+}
+```
+
+For other non-standard usage patterns found in the codebase, the `find_misc_usages()` method is used. This method checks various identifiers, which might be customized according to your needs. In the future this should be configurable through a config file:
+
+```rust
+pub fn find_misc_usages(&mut self) -> Vec<KeyUsage> {
+    let identifiers = [
+        "translationId:",
+        "translationKey:",
+        "transId:",
+        "pageTitleId=",
+        "titleId=",
+    ];
+
+    self.find_usages_multiple_tags(identifiers)
+}
+```
+
+### Extracting the Translation Keys
+
+The `find_usages()` and `find_usages_multiple_tags()` methods are the core of the key extraction process. They iterate over each line of a file, identifying patterns that signify the use of a translation key and then extracts the key and its usage details (such as the line number and file path).
+
+```rust
+fn find_usages(&mut self, opening_tag: &str, id_tag: &str) -> Vec<KeyUsage> {
+    ...
+    if let Ok((_, key)) = extract_id(&line, id_tag) {
+        results.push(KeyUsage {
+            key,
+            line: line_number + 1,
+            file_path: self.path.to_path_buf(),
+        });
+    }
+    ...
+}
+
+fn find_usages_multiple_tags(&mut self, tags: [&str; 5]) -> Vec<KeyUsage> {
+    ...
+    if let Ok((_, key)) = extract_id(&line, tag_str) {
+        results.push(KeyUsage {
+            key,
+            line: line_number + 1,
+            file_path: self.path.to_path_buf(),
+        });
+    }
+    ...
+}
+```
+
+### Key Extraction Utilities
+
+To facilitate key extraction, we use a couple of utility functions: extract_id and extract_quoted_string. These functions utilize nom parsers to navigate to the desired tags and extract the enclosed keys:
+
+rust
+Copy code
+fn extract*id<'a>(input: &'a str, id_tag: &'a str) -> IResult<&'a str, String> {
+let (input, *) = take*until(id_tag)(input)?;
+let (input, *) = tag(id_tag)(input)?;
+
+    let (input, _) = take_until("\"")(input)?;
+    let (input, id) = fenced("\"", "\"")(input)?;
+
+    Ok((input, id.to_string()))
+
+}
+
+fn extract*quoted_string(input: &str) -> IResult<&str, String> {
+let (input, *) = take_until("\"")(input)?;
+let (input, id) = fenced("\"", "\"")(input)?;
+
+    Ok((input, id.to_string()))
+
+}
+Considerations for Future Improvements
+The current implementation effectively tracks the use of translation keys in various common patterns. However, considering the diverse ways in which keys might be utilized in a large codebase, it's recommended to expand the variety of patterns recognized by the tool. Additionally, incorporating a configuration file to specify custom patterns would enhance the tool's flexibility.
+
+Further, while the ternary operations are handled, it is noted that edge cases may exist which could potentially lead to incorrect results. A more robust mechanism to deal with such cases would be a beneficial enhancement.
+
+Lastly, after each operation, the file's read pointer is reset to the start, allowing for subsequent operations to read the file from the beginning. Ensuring optimal performance with larger files and avoiding unnecessary file operations could be a focal point for future optimizations.
+
+```
+
+```
+
+```
+
+```
