@@ -17,6 +17,12 @@ dependencies:
   '@astrojs/tailwind':
     specifier: ^5.0.0
     version: 5.0.0(astro@3.0.7)(tailwindcss@3.3.3)
+  '@fontsource-variable/jetbrains-mono':
+    specifier: ^5.0.13
+    version: 5.0.13
+  '@fontsource/poppins':
+    specifier: ^5.0.8
+    version: 5.0.8
   '@radix-ui/react-icons':
     specifier: ^1.3.0
     version: 1.3.0(react@18.2.0)
@@ -857,6 +863,14 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
+
+  /@fontsource-variable/jetbrains-mono@5.0.13:
+    resolution: {integrity: sha512-btDvHGApc1ckuJxHwxvwHXxXyoP+DceK0+i8GKGDGE9wOk7WveJhFk39v96sGyhM/lJ28SC/6l03rItAcAhSjQ==}
+    dev: false
+
+  /@fontsource/poppins@5.0.8:
+    resolution: {integrity: sha512-P8owfYWluoUY5Nyzk4gT/L6LmLmseP6ezFWhj6VBUa5pRIdnCvNJpoQ6i/vhekjtJOfqX6nKlB+LCttoUl2GQQ==}
+    dev: false
 
   /@jridgewell/gen-mapping@0.3.3:
     resolution: {integrity: sha512-HLhSWOLRi875zjjMG/r+Nv0oCW8umGb0BgEhyX3dDX3egwZtB8PqLnjz3yedt8R5StBrzcg4aBpnh8UA9D1BoQ==}
