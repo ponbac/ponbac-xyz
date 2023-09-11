@@ -1,7 +1,7 @@
 ---
 title: "Validating translations in React with Rust - Part 1: CLI tool"
 description: "Solving the problem of missing and unused translations in React with a tool built in Rust."
-pubDate: "Sep 03 2023"
+pubDate: "Sep 11 2023"
 heroImage: "/images/translations-1-hero.png"
 ---
 
@@ -21,10 +21,6 @@ const MyComponent = () => (
 );
 ```
 
-## Table of contents
-
-# The problem
-
 Unfortunately, it's easy to make mistakes when working like this. For example, you might forget to add a translation for a new string, or you might accidentally use a key that doesn't exist. These mistakes can be hard to catch, especially if you're working on a large project with many translations.
 
 The biggest pain points for us are:
@@ -36,7 +32,7 @@ The biggest pain points for us are:
 
 Finding these mistakes manually is tedious and error-prone. We need a way to automate this process. We need a way to validate our translations.
 
-# Easing the pain
+## Table of contents
 
 In order to solve these issues _(and build something interesting)_ I began building a tool that could validate our translations, locally and in the CI pipeline.
 
@@ -221,20 +217,22 @@ for file in walker.filter(|e| e.path().is_file()) {
 
 ## Finding translation keys in code
 
-To identify the occurrences of each translation key within our TypeScript files, we are leveraging the nom parsing library to navigate through the structure of our code and pinpoint the exact locations where a translation key is used. This operation is essential in ensuring that all keys are correctly implemented and facilitates the detection of any unused keys.
+Now that we have an iterator over all the files that we want to check, we can start looking for translation keys in the code. We do this by reading each file and searching for patterns that signify the use of a translation key. Unfortunately, there are many different ways to use a translation key in our codebase, so we need to look for multiple patterns.
 
-Let's delve into how the Rust code integrates with your TypeScript files to streamline the translation validation process.
+### The TSFile struct
 
-### Establishing TypeScript File Structure
-
-We initiate by defining the TSFile struct to represent a TypeScript file. This struct holds both the file itself and its respective path:
+This struct is similar to the `TranslationFile` struct, but instead of representing a translation file, it represents a TypeScript file. It contains the path to the file, and a `File` object that we can use to read the file:
 
 ```rust
 pub struct TSFile {
     pub file: File,
     pub path: PathBuf,
 }
+```
 
+Translation keys found in the code are represented by the `KeyUsage` struct:
+
+```rust
 pub struct KeyUsage {
     pub key: String,
     pub line: usize,
@@ -242,9 +240,9 @@ pub struct KeyUsage {
 }
 ```
 
-Within TSFile, we have methods to locate various usage patterns of translation keys in your TypeScript code. Let’s examine each method in detail.
+These fields are used to display information about the key usage to the user. By combining the `line` and `file_path` fields, we can create a link that takes the user directly to the line where the key is used by simply printing `file_path:line` in the terminal. This makes fixing invalid key usages a little bit easier.
 
-### Finding Specific Usage Patterns
+### Finding specific usage patterns
 
 The `find_formatted_message_usages()` method searches for translation keys used in the `<FormattedMessage />` component. It looks for patterns beginning with `<FormattedMessage` followed by `id=` to find the keys:
 
@@ -278,7 +276,7 @@ pub fn find_misc_usages(&mut self) -> Vec<KeyUsage> {
 }
 ```
 
-### Extracting the Translation Keys
+### Extracting the translation keys
 
 The `find_usages()` and `find_usages_multiple_tags()` methods are the core of the key extraction process. They iterate over each line of a file, identifying patterns that signify the use of a translation key and then extracts the key and its usage details (such as the line number and file path).
 
@@ -343,9 +341,9 @@ The method iterates over each line of the file, looking for the `opening_tag`. O
 
 Keeping track of the state of the method is done with the `found_opening` and `found_ternary` variables. These variables are used to determine if the method is currently looking for an `id_tag` or if it's looking for the second part of a ternary operator. If the method finds a `/>` tag, it resets the state variables, as this means that we failed to find the `id_tag` and are now looking for a new `opening_tag`.
 
-### Key Extraction Utilities
+### Key extraction utilities
 
-To facilitate key extraction, we use a couple of utility functions: `extract_id()` and `extract_quoted_string()`. These functions utilize [nom](https://github.com/rust-bakery/nom) to navigate to the desired tags and extract the enclosed keys:
+To facilitate key extraction, I use a couple of utility functions: `extract_id()` and `extract_quoted_string()`. These functions utilize [nom](https://github.com/rust-bakery/nom) to navigate to the desired tags and extract the enclosed keys:
 
 ```rust
 fn extract_id<'a>(input: &'a str, id_tag: &'a str) -> IResult<&'a str, String> {
@@ -372,4 +370,69 @@ This could probably also have been done with something like [tree-sitter](https:
 
 ## Putting it all together
 
-You can find the full source code for the CLI tool [here](https://github.com/ponbac/ramilang). It's still a work in progress, but it's already usable and has helped us find a lot of issues in our translations.
+Now that we have all the pieces in place, we can start putting them together. A simplified version of the `main()` function could look something like this:
+
+```rust
+static EXTENSIONS_TO_SEARCH: [&str; 2] = ["ts", "tsx"];
+
+fn main() {
+    let args = Args::parse();
+
+    let mut en_file = TranslationFile::new(args.en_file).unwrap();
+    let mut sv_file = TranslationFile::new(args.sv_file).unwrap();
+
+    en_file.is_compatible_with(&sv_file).unwrap();
+
+    let walker = WalkDir::new(args.root_dir)
+        .into_iter()
+        .filter_entry(|e| !is_node_modules(e))
+        .filter_map(|e| e.ok());
+
+    let mut key_usages = Vec::new();
+    for file in walker.filter(|e| e.path().is_file()) {
+        if let Some(ext) = file.path().extension() {
+            if EXTENSIONS_TO_SEARCH.contains(&ext.to_str().unwrap()) {
+                let mut ts_file = TSFile::new(file.path());
+
+                // collect key usages from different methods
+                let formatted_message_keys = ts_file.find_formatted_message_usages();
+                let format_message_keys = ts_file.find_format_message_usages();
+                let misc_usages = ts_file.find_misc_usages();
+
+                // extend the key_usages vector with the findings
+                key_usages.extend(format_message_keys);
+                key_usages.extend(formatted_message_keys);
+                key_usages.extend(misc_usages);
+            }
+        }
+    }
+
+    // check that all usages are valid
+    let mut n_invalid_usages = 0;
+
+    let entries = en_translation_file.as_ref().unwrap().entries.clone(); // hehe
+    key_usages.iter().for_each(|usage| {
+        if !entries.contains_key(usage.key.as_str()) {
+            println!(
+                "[INVALID] key {} does not exist! {}",
+                usage.key,
+                usage.file_path.to_str().unwrap()
+            );
+            n_invalid_usages += 1;
+        }
+    });
+
+    if n_invalid_usages != 0 {
+        println!(
+            "{}{}",
+            style("ERROR").red().bold(),
+            style(format!(": {} invalid key usages!", n_invalid_usages)).bold(),
+        );
+        std::process::exit(1);
+    }
+}
+```
+
+I have obviously omitted a ton of code here, but you get the idea. In the real version, there are a lot of pretty printing to the terminal _(using the [console](https://crates.io/crates/console) crate)_, finding unused keys, and ignoring certain keys present in a config file _(among other things)_. You can find the full source code for the CLI tool [here](https://github.com/ponbac/ramilang) if you are interested. It's still a work in progress, but it's already usable and has helped us find a lot of issues in our translations.
+
+How I turn this `Rust` code into a cross-platform `npm` package will be covered in the next part of this series. I will probably also write a third part about how I bundled a frontend built with [htmx](https://htmx.org/) for editing translations into the final binary.
