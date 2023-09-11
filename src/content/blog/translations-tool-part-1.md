@@ -434,4 +434,6 @@ fn main() {
 
 I have obviously omitted a ton of code here, but you get the idea. In the real version, there are a lot of pretty printing to the terminal _(using the [console](https://crates.io/crates/console) crate)_, finding unused keys, and ignoring certain keys present in a config file _(among other things)_. You can find the full source code for the CLI tool [here](https://github.com/ponbac/ramilang) if you are interested. It's still a work in progress, but it's already usable and has helped us find a lot of issues in our translations.
 
-How I turn this `Rust` code into a cross-platform `npm` package will be covered in the next part of this series. I will probably also write a third part about how I bundled a frontend built with [htmx](https://htmx.org/) for editing translations into the final binary.
+Hopefully this post has shown you that `Rust` is not that scary, and that not a lot of code is needed to build something quite useful with it _(even for someone like me who has very limited experience with the language)_.
+
+How I turn this `Rust` code into a cross-platform `npm` package and use it in our CI will be covered in the next part of this series. I will probably also write a third part about how I bundled a frontend built with [htmx](https://htmx.org/) for editing translations into the final binary.
