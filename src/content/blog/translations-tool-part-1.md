@@ -322,7 +322,6 @@ fn find_usages(&mut self, opening_tag: &str, id_tag: &str) -> Vec<KeyUsage> {
                     found_ternary = false;
                     found_opening = false;
                 } else if line.contains("/>") {
-                    // TODO: think about edge cases where this might not be true!
                     found_ternary = false;
                     found_opening = false;
                 }
