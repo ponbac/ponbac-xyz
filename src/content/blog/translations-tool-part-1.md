@@ -2,12 +2,12 @@
 title: "Validating translations in React with Rust - Part 1: CLI tool"
 description: "Solving the problem of missing and unused translations in React with a tool built in Rust."
 pubDate: "Sep 11 2023"
-heroImage: "/images/translations-1-hero.png"
+heroImage: "/images/translations-1-hero.webp"
 ---
 
 I'm currently working on a React project that uses [react-intl](https://www.npmjs.com/package/react-intl) for translations. We have a lot of translations, and we're adding more every day. Our translation keys and values are manually entered into two JSON files: `en.json` and `sv.json` _(for English and Swedish, respectively)_.
 
-![Translations in JSON files](../../assets/images/translation-tool/translations-example.png)
+![Translations in JSON files](../../assets/images/translation-tool/translations-example.webp)
 
 These translations are then used in our React components. Most of the time, we use the `<FormattedMessage />` component from `react-intl` to render the translations:
 
@@ -199,7 +199,7 @@ let walker = WalkDir::new(args.root_dir)
 
 As can be seen above, we are filtering out the `node_modules` directory, as we don't want to check any files in there. The `filter_entry()` function makes the walker not descend into the filtered directories, thereby potentially saving us quite a bit of time _(`node_modules` often contains a ridiculous amount of files and directories)_.
 
-We are also filtering out any files that we don't have access to _(e.g. due to permissions)_. This is done with the `filter_map()` function, which allows us to filter and map at the same time. The `ok()` function converts a `Result` into an `Option`, discarding any errors. Thanks to this, we won't have to deal with any error handling due to inaccessible files inside the loop processing the files.
+We are also filtering out any files that we don't have access to _(e.g. due to permissions)_. This is done with the `filter_map()` function, which allows us to filter and map at the same time. The `ok()` function converts a `Result` into an `Option`, turning errors into `None`, which results in them getting filtered out. Thanks to this, we won't have to deal with any error handling due to inaccessible files inside the loop processing the files.
 
 Now that we have an iterator over all the files, we can narrow it down to only the files that we are interested in. In this case, we are only interested in files with the `.ts` or `.tsx` extension:
 
