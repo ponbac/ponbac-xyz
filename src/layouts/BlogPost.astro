@@ -14,11 +14,11 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
   <Header />
   <main class="py-8 w-full">
     <article>
-      <div class="w-full rounded-full">
+      <div class="w-full">
         {
           heroImage && (
             <img
-              class="px-4 block mx-auto rounded-[2.5rem] drop-shadow-xl lg:max-w-5xl"
+              class="px-4 block mx-auto rounded-[2.0rem] drop-shadow-xl lg:max-w-5xl"
               src={heroImage}
               alt=""
               transition:name={`${title}-heroImage`}
