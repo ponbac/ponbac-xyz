@@ -1,0 +1,16 @@
+---
+interface Props {
+  path: string;
+  height?: string;
+}
+
+const { path, height } = Astro.props;
+---
+
+<div class="w-full flex items-center justify-center">
+  <div
+    class="h-full w-full rounded-md bg-gradient-to-r from-orange-400 via-red-500 to-orange-700 p-1"
+  >
+    <iframe src={path} width="100%" height={height ?? "500px"}></iframe>
+  </div>
+</div>

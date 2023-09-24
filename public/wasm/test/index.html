@@ -1,0 +1,37 @@
+<!DOCTYPE html><html><head>
+    <script type="module">import init from '/wasm/test/day9-652f2891563402b4.js';init('/wasm/test/day9-652f2891563402b4_bg.wasm');</script>
+
+    <style>
+      html {
+        /* Remove touch delay: */
+        touch-action: manipulation;
+      }
+
+      html,
+      body {
+        overflow: hidden;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100%;
+        width: 100%;
+      }
+
+      canvas {
+        margin-right: auto;
+        margin-left: auto;
+        display: block;
+        position: absolute;
+        top: 0%;
+        left: 50%;
+        transform: translate(-50%, 0%);
+      }
+    </style>
+  
+<link rel="preload" href="/wasm/test/day9-652f2891563402b4_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/wasm/test/day9-652f2891563402b4.js"></head>
+
+  <body>
+    <canvas id="canvas"></canvas>
+  
+
+</body></html>

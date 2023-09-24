@@ -1,0 +1,26 @@
+---
+title: "Testing WASM with MDX"
+description: "Can I render it inside of MDX?"
+pubDate: "Sep 13 2023"
+heroImage: "/images/wasm-hero.png"
+---
+
+import WasmContainer from "../../components/WasmContainer.astro";
+
+# MDX
+
+```mdx
+<input type="text" className="!text-red-600" />
+Today's date is {new Date().toLocaleDateString()}.
+```
+
+<input type="text" className="!text-red-600" />
+Today's date is {new Date().toLocaleDateString()}.
+
+# WASM
+
+```mdx
+<WasmContainer path="/wasm/test/index.html" height="500px" />
+```
+
+<WasmContainer path="/wasm/test/index.html" height="500px" />
